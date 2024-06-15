@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>check out System</title>
+  <title>Check Out System</title>
   <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
@@ -15,58 +15,81 @@
 <body>
   <div id="map"></div>
   <div class="cont">
-    <h4>Please Fill Up the Form accurately and honest</h4>
-    <p>Silay City Area Only if location marked outside silay your order will be ignored</p>
-  <form id="locationForm" action="https://formspree.io/f/mayrzopn" method="POST">
-    <input placeholder="latitude" type="text" id="latitude" name="latitude"><br>
-    <input placeholder="longitude" type="text" id="longitude" name="longitude"><br>
-    <input placeholder="Enter Phone Number" type="number" name="PhoneNumber" required>
-    <input placeholder="Enter donut number" type="number" name="OrderNumber" required>
-    <input placeholder="Quantity" type="number" name="Quantity" required>
-    <br>
-    <button type="submit">Order</button>
-  </form>
+    <h4>Please Fill Up the Form accurately and honestly</h4>
+    <p>Silay City Area Only. If location marked outside Silay, your order will be ignored</p>
+    <form id="locationForm" action="https://formspree.io/f/mayrzopn" method="POST">
+      <input placeholder="Address" type="text" id="address" name="address"><br>
+      <input placeholder="Enter Phone Number" type="number" name="PhoneNumber" required>
+      <input placeholder="Enter donut number" type="number" name="OrderNumber" required>
+      <input placeholder="Quantity" type="number" name="Quantity" required>
+      <br>
+      <button type="submit">Order</button>
+    </form>
   </div>
   <script src="https://js.api.here.com/v3/3.1/mapsjs-core.js"></script>
   <script src="https://js.api.here.com/v3/3.1/mapsjs-service.js"></script>
   <script src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js"></script>
+  <script src="https://js.api.here.com/v3/3.1/mapsjs-ui.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://js.api.here.com/v3/3.1/mapsjs-ui.css" />
   <script>
     var platform = new H.service.Platform({
       'apikey': 'icF6nrsrWyCf-86CM5umPq1MGViDvKk-YkVaqUMxpGE'
     });
 
     var defaultLayers = platform.createDefaultLayers();
-
     var map = new H.Map(
       document.getElementById('map'),
       defaultLayers.raster.satellite.map,
       {
-        center: { lat: 10.799680, lng: 122.975288 }, 
-        zoom: 12
+        center: { lat: 10.799680, lng: 122.975288 },
+        zoom: 18
       }
     );
 
     var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
+    var ui = H.ui.UI.createDefault(map, defaultLayers);
 
-    var marker = new H.map.Marker(map.getCenter());
+    var marker = new H.map.Marker(map.getCenter(), { volatility: true });
     map.addObject(marker);
 
     marker.draggable = true;
 
+    function updateAddress(position) {
+      var url = `https://revgeocode.search.hereapi.com/v1/revgeocode?at=${position.lat},${position.lng}&apiKey=icF6nrsrWyCf-86CM5umPq1MGViDvKk-YkVaqUMxpGE`;
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          if (data.items && data.items.length > 0) {
+            var address = data.items[0].address.label;
+            document.getElementById('address').value = address;
+          } else {
+            console.error('No address found for this location.');
+          }
+        })
+        .catch(error => {
+          console.error('Geocoding error:', error);
+        });
+    }
 
     marker.addEventListener('dragend', function(ev) {
-      var position = map.screenToGeo(ev.currentPointer.viewportX, ev.currentPointer.viewportY);
-      document.getElementById('latitude').value = position.lat.toFixed(6);
-      document.getElementById('longitude').value = position.lng.toFixed(6);
+      var position = marker.getGeometry();
+      updateAddress(position);
     });
 
-
-    map.addEventListener('dragend', function(ev) {
+    map.addEventListener('dragend', function() {
       var position = map.getCenter();
       marker.setGeometry(position);
-      document.getElementById('latitude').value = position.lat.toFixed(6);
-      document.getElementById('longitude').value = position.lng.toFixed(6);
+      updateAddress(position);
     });
+
+    map.addEventListener('mapviewchangeend', function() {
+      var position = map.getCenter();
+      marker.setGeometry(position);
+      updateAddress(position);
+    });
+
+    updateAddress(map.getCenter());
   </script>
 </body>
 </html>
