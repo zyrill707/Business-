@@ -22,7 +22,7 @@
       <input placeholder="Address" type="text" id="address" name="address"><br>
       <input type="text" placeholder="Enter Your Name" name="PersonName">
       <input placeholder="Enter Phone Number" type="number" name="PhoneNumber" required>
-      <input placeholder="Enter donut number" type="number" name="OrderNumber" required>
+      <input placeholder="Enter donut number" type="number" id="donutNumber" name="OrderNumber" required>
       <input id="quantity" placeholder="Quantity" type="number" name="Quantity" required>
       <p id="deliveryMessage"></p>
       <br>
@@ -93,15 +93,24 @@
     });
 
     updateAddress(map.getCenter());
+
     document.getElementById("quantity").addEventListener('input', function(){
       var quantity = document.getElementById("quantity").value;
       var message = document.getElementById("deliveryMessage");
       if (quantity >= 2) {
         message.textContent = "Free Delivery Applied ☑"
-      }else{
+      } else {
         message.textContent = ""
       }
-    })
+    });
+
+    // Automatically set donut number
+    document.addEventListener('DOMContentLoaded', function() {
+      var donutNumber = localStorage.getItem('donutNumber');
+      if (donutNumber) {
+        document.getElementById('donutNumber').value = donutNumber;
+      }
+    });
   </script>
 </body>
 </html>
