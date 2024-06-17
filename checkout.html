@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Check Out System</title>
+  <title>Check Out</title>
   <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
@@ -17,7 +17,7 @@
   <div class="cont">
     <h4>Please Fill Up the Form accurately and honestly</h4>
     <hr>
-    <p><b>Silay City Area Only.</b> If location marked outside Silay, your order will be ignored</p>
+    <p><b>Available Location</b> Silay, Talisay, Bacolod, Victorias, Eb mag Delivery fee may vary</p>
     <form id="locationForm" action="https://formspree.io/f/mayrzopn" method="POST">
       <input placeholder="Address" type="text" id="address" name="address"><br>
       <input type="text" placeholder="Enter Your Name" name="PersonName">
@@ -66,6 +66,7 @@
           if (data.items && data.items.length > 0) {
             var address = data.items[0].address.label;
             document.getElementById('address').value = address;
+            checkFreeDelivery(address);
           } else {
             console.error('No address found for this location.');
           }
@@ -73,6 +74,18 @@
         .catch(error => {
           console.error('Geocoding error:', error);
         });
+    }
+
+    function checkFreeDelivery(address) {
+      var quantity = document.getElementById("quantity").value;
+      var message = document.getElementById("deliveryMessage");
+      var isSilay = address.includes("Silay");
+
+      if ((isSilay && quantity >= 2) || (!isSilay && quantity >= 4)) {
+        message.textContent = "Free Delivery Applied ☑";
+      } else {
+        message.textContent = "";
+      }
     }
 
     marker.addEventListener('dragend', function(ev) {
@@ -94,17 +107,11 @@
 
     updateAddress(map.getCenter());
 
-    document.getElementById("quantity").addEventListener('input', function(){
-      var quantity = document.getElementById("quantity").value;
-      var message = document.getElementById("deliveryMessage");
-      if (quantity >= 2) {
-        message.textContent = "Free Delivery Applied ☑"
-      } else {
-        message.textContent = ""
-      }
+    document.getElementById("quantity").addEventListener('input', function() {
+      var address = document.getElementById("address").value;
+      checkFreeDelivery(address);
     });
 
-    // Automatically set donut number
     document.addEventListener('DOMContentLoaded', function() {
       var donutNumber = localStorage.getItem('donutNumber');
       if (donutNumber) {
